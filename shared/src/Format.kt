@@ -1,58 +1,55 @@
-sealed interface Piece {
-    data class Text(
-        val value: String,
-    ) : Piece
-
-    data class Link(
-        val url: String,
-        val label: String,
-    ) : Piece
-
-    object Break : Piece
-}
-
 private val tokenPattern = Regex("<(/?)([a-zA-Z0-9]+)([^>]*)>|([^<]+)")
 private val hrefPattern = Regex("href\\s*=\\s*\"([^\"]*)\"")
 private val whitespace = Regex("\\s+")
+private val entityPattern = Regex("&(?:nbsp|quot|apos|lt|gt|amp|#39);")
 
 private fun decodeEntities(s: String): String =
-    s
-        .replace("&nbsp;", " ")
-        .replace("&quot;", "\"")
-        .replace("&#39;", "'")
-        .replace("&apos;", "'")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&amp;", "&")
+    entityPattern.replace(s) {
+        when (it.value) {
+            "&nbsp;" -> " "
+            "&quot;" -> "\""
+            "&apos;", "&#39;" -> "'"
+            "&lt;" -> "<"
+            "&gt;" -> ">"
+            else -> "&"
+        }
+    }
 
-fun parseHtml(html: String): List<List<Piece>> {
-    val paragraphs = mutableListOf<List<Piece>>()
-    var current = mutableListOf<Piece>()
+fun StringBuilder.buildHtml(html: String) {
+    val paragraph = StringBuilder()
+    var paragraphHasContent = false
+    var paragraphCount = 0
     var href: String? = null
     val label = StringBuilder()
 
     fun flush() {
-        val cleaned = current.filterNot { it is Piece.Text && it.value.trim() == "|" }
-        val hasContent =
-            cleaned.any {
-                it is Piece.Link || (it is Piece.Text && it.value.isNotBlank())
-            }
-        if (hasContent) paragraphs += cleaned
-        current = mutableListOf()
+        if (!paragraphHasContent) {
+            paragraph.clear()
+            return
+        }
+        if (paragraphCount++ > 0) appendLine()
+        append(paragraph)
+        paragraph.clear()
+        paragraphHasContent = false
     }
 
     for (m in tokenPattern.findAll(html)) {
         val rawText = m.groups[4]?.value
         if (rawText != null) {
             val text = decodeEntities(rawText).replace(whitespace, " ")
-            if (href != null) label.append(text) else current += Piece.Text(text)
+            if (href != null) {
+                label.append(text)
+            } else if (text.trim() != "|") {
+                paragraph.append(text)
+                paragraphHasContent = paragraphHasContent || text.isNotBlank()
+            }
             continue
         }
 
         val closing = m.groupValues[1] == "/"
         when (m.groupValues[2].lowercase()) {
             "br" -> {
-                current += Piece.Break
+                paragraph.appendLine()
             }
 
             "p" -> {
@@ -66,7 +63,13 @@ fun parseHtml(html: String): List<List<Piece>> {
                 } else {
                     val url = href
                     if (url != null && !url.startsWith("mailto:")) {
-                        current += Piece.Link(decodeEntities(url), label.toString().trim())
+                        val decodedUrl = decodeEntities(url)
+                        val trimmedLabel = label.toString().trim()
+                        paragraph.append(trimmedLabel)
+                        if (decodedUrl.isNotBlank() && decodedUrl != trimmedLabel) {
+                            paragraph.append(" (").append(decodedUrl).append(')')
+                        }
+                        paragraphHasContent = true
                     }
                     href = null
                 }
@@ -74,30 +77,4 @@ fun parseHtml(html: String): List<List<Piece>> {
         }
     }
     flush()
-    return paragraphs
-}
-
-fun StringBuilder.renderHtml(html: String) {
-    parseHtml(html).forEachIndexed { paragraphIndex, paragraph ->
-        if (paragraphIndex > 0) appendLine()
-
-        paragraph.forEach { piece ->
-            when (piece) {
-                is Piece.Text -> {
-                    append(piece.value)
-                }
-
-                is Piece.Link -> {
-                    append(piece.label)
-                    if (piece.url.isNotBlank() && piece.url != piece.label) {
-                        append(" (").append(piece.url).append(')')
-                    }
-                }
-
-                Piece.Break -> {
-                    appendLine()
-                }
-            }
-        }
-    }
 }

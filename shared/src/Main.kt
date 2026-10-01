@@ -21,7 +21,6 @@ fun fetchFeed(url: String = FEED_URL): String =
     }
 
 private val descriptionPattern = Regex("(<description(?:\\s[^>]*)?>)([\\s\\S]*?)(</description>)")
-
 private val bareAmpersand = Regex("&(?!(?:amp|lt|gt|quot|apos|#\\d+|#x[0-9a-fA-F]+);)")
 
 fun escapeXml(xml: String): String =

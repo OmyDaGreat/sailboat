@@ -43,7 +43,7 @@ fun getEventResults(
                     appendLine("Latitude: ${item.latitude ?: "unknown"}")
                     appendLine("Longitude: ${item.longitude ?: "unknown"}")
 
-                    renderHtml(item.description)
+                    buildHtml(item.description)
                     appendLine()
                 }
             }
@@ -63,6 +63,7 @@ private fun fetchAIResponse(prompt: String) =
                 contentType(ContentType.Application.Json)
                 setBody(json.encodeToString<AIRequest>(request))
             }
+
         if (response.status.value !in 200..299) {
             error("AI request failed with HTTP ${response.status.value}")
         }
@@ -73,5 +74,5 @@ private fun fetchAIResponse(prompt: String) =
             .firstOrNull()
             ?.message
             ?.content
-            ?: error("The AI response did not contain any choices")
+            ?: error("The AI response did not contain anything")
     }
