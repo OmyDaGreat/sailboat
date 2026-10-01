@@ -1,13 +1,10 @@
+import com.varabyte.kotter.foundation.input.input
+import com.varabyte.kotter.foundation.input.onInputEntered
+import com.varabyte.kotter.foundation.input.runUntilInputEntered
+import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.session
-import com.varabyte.kotter.foundation.text.bold
-import com.varabyte.kotter.foundation.text.cyan
-import com.varabyte.kotter.foundation.text.link
-import com.varabyte.kotter.foundation.text.p
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
-import com.varabyte.kotter.foundation.text.underline
-import com.varabyte.kotter.runtime.render.RenderScope
-import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
@@ -18,9 +15,7 @@ const val FEED_URL = "https://events.seas.harvard.edu/calendar.xml"
 
 fun fetchFeed(url: String = FEED_URL): String =
     runBlocking {
-        HttpClient().use { client ->
-            client.get(url).bodyAsText().replace("\r\n", "\n")
-        }
+        http.get(url).bodyAsText().replace("\r\n", "\n")
     }
 
 private val descriptionPattern = Regex("(<description(?:\\s[^>]*)?>)([\\s\\S]*?)(</description>)")
@@ -58,130 +53,41 @@ fun declareNamespaces(xml: String): String =
             "xmlns:media=\"http://search.yahoo.com/mrss/\">",
     )
 
-sealed interface Piece {
-    data class Text(
-        val value: String,
-    ) : Piece
-
-    data class Link(
-        val url: String,
-        val label: String,
-    ) : Piece
-
-    object Break : Piece
-}
-
-private val tokenPattern = Regex("<(/?)([a-zA-Z0-9]+)([^>]*)>|([^<]+)")
-private val hrefPattern = Regex("href\\s*=\\s*\"([^\"]*)\"")
-private val whitespace = Regex("\\s+")
-
-private fun decodeEntities(s: String): String =
-    s
-        .replace("&nbsp;", " ")
-        .replace("&quot;", "\"")
-        .replace("&#39;", "'")
-        .replace("&apos;", "'")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&amp;", "&")
-
-fun parseHtml(html: String): List<List<Piece>> {
-    val paragraphs = mutableListOf<List<Piece>>()
-    var current = mutableListOf<Piece>()
-    var href: String? = null
-    val label = StringBuilder()
-
-    fun flush() {
-        val cleaned = current.filterNot { it is Piece.Text && it.value.trim() == "|" }
-        val hasContent =
-            cleaned.any {
-                it is Piece.Link || (it is Piece.Text && it.value.isNotBlank())
-            }
-        if (hasContent) paragraphs += cleaned
-        current = mutableListOf()
-    }
-
-    for (m in tokenPattern.findAll(html)) {
-        val rawText = m.groups[4]?.value
-        if (rawText != null) {
-            val text = decodeEntities(rawText).replace(whitespace, " ")
-            if (href != null) label.append(text) else current += Piece.Text(text)
-            continue
-        }
-
-        val closing = m.groupValues[1] == "/"
-        when (m.groupValues[2].lowercase()) {
-            "br" -> {
-                current += Piece.Break
-            }
-
-            "p" -> {
-                flush()
-            }
-
-            "a" -> {
-                if (!closing) {
-                    href = hrefPattern.find(m.groupValues[3])?.groupValues?.get(1)
-                    label.clear()
-                } else {
-                    val url = href
-                    if (url != null && !url.startsWith("mailto:")) {
-                        current += Piece.Link(decodeEntities(url), label.toString().trim())
-                    }
-                    href = null
-                }
-            }
-        }
-    }
-    flush()
-    return paragraphs
-}
-
-fun RenderScope.renderHtml(html: String) {
-    for (paragraph in parseHtml(html)) {
-        p {
-            var atLineStart = true
-            paragraph.forEach { piece ->
-                when (piece) {
-                    is Piece.Text -> {
-                        val t = if (atLineStart) piece.value.trimStart() else piece.value
-                        if (t.isNotEmpty()) {
-                            text(t)
-                            atLineStart = false
-                        }
-                    }
-
-                    is Piece.Link -> {
-                        underline { cyan { link(piece.url, piece.label) } }
-                        atLineStart = false
-                    }
-
-                    Piece.Break -> {
-                        textLine()
-                        atLineStart = true
-                    }
-                }
-            }
-        }
-    }
-}
-
 fun main() {
-    val raw = fetchFeed()
-    val rss = XML.v1 { policy { ignoreUnknownChildren() } }.decodeFromString<Rss>(escapeXml(declareNamespaces(raw)))
-
     session {
+        var topic by liveVarOf("")
+        var email by liveVarOf("")
+        var timeFromNow by liveVarOf("")
+
         section {
-            bold { textLine(rss.channel.title) }
-            bold { textLine("${rss.channel.items.size} event(s)") }
-            textLine()
-        }.run()
-        rss.channel.items.forEach { item ->
-            section {
-                bold { textLine(item.title.trim()) }
-                renderHtml(item.description)
-                textLine()
-            }.run()
+            textLine("What topic would you like to search for?")
+            text("> ")
+            input()
+        }.runUntilInputEntered {
+            onInputEntered { topic = input.trim() }
         }
+
+        section {
+            textLine("What email address should the results be sent to?")
+            text("> ")
+            input()
+        }.runUntilInputEntered {
+            onInputEntered { email = input.trim() }
+        }
+
+        section {
+            textLine("How far ahead should events be searched (e.g. 1 week, 2 months)?")
+            text("> ")
+            input()
+        }.runUntilInputEntered {
+            onInputEntered { timeFromNow = input.trim() }
+        }
+
+        val raw = fetchFeed()
+        val rss = XML.v1 { policy { ignoreUnknownChildren() } }.decodeFromString<Rss>(escapeXml(declareNamespaces(raw)))
+
+        section {
+            textLine(getEventResults(topic, timeFromNow, rss.channel.items))
+        }.run()
     }
 }
