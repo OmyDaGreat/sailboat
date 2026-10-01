@@ -93,6 +93,9 @@ jobs:
       - build-windows
     runs-on: ubuntu-latest
     steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
       - name: Download executables
         uses: actions/download-artifact@v8
         with:
