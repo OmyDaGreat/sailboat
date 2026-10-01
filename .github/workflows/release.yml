@@ -23,16 +23,16 @@ jobs:
           java-version: "17"
 
       - name: Build MacOS release
-        run: ./kotlin build -m macos-cli -p macosArm64 -v release
+        run: ./kotlin build -m macos-sailboat -p macosArm64 -v release
 
       - name: Prepare MacOS artifact
-        run: cp build/tasks/_macos-cli_linkMacosArm64Release/macos-cli.kexe macos-cli.kexe
+        run: cp build/tasks/_macos-sailboat_linkMacosArm64Release/macos-sailboat.kexe macos-sailboat.kexe
 
       - name: Upload MacOS executable
         uses: actions/upload-artifact@v4
         with:
-          name: macos-cli.kexe
-          path: macos-cli.kexe
+          name: macos-sailboat.kexe
+          path: macos-sailboat.kexe
 
   build-linux:
     name: Build Linux executable
@@ -48,16 +48,16 @@ jobs:
           java-version: "17"
 
       - name: Build Linux release
-        run: ./kotlin build -m linux-cli -p linuxX64 -v release
+        run: ./kotlin build -m linux-sailboat -p linuxX64 -v release
 
       - name: Prepare Linux artifact
-        run: cp build/tasks/_linux-cli_linkLinuxX64Release/linux-cli.kexe linux-cli.kexe
+        run: cp build/tasks/_linux-sailboat_linkLinuxX64Release/linux-sailboat.kexe linux-sailboat.kexe
 
       - name: Upload Linux executable
         uses: actions/upload-artifact@v4
         with:
-          name: linux-cli.kexe
-          path: linux-cli.kexe
+          name: linux-sailboat.kexe
+          path: linux-sailboat.kexe
 
   build-windows:
     name: Build Windows executable
@@ -73,17 +73,17 @@ jobs:
           java-version: "17"
 
       - name: Build Windows release
-        run: .\kotlin.bat build -m windows-cli -p mingwX64 -v release
+        run: .\kotlin.bat build -m windows-sailboat -p mingwX64 -v release
 
       - name: Prepare Windows artifact
         shell: pwsh
-        run: Copy-Item build/tasks/_windows-cli_linkMingwX64Release/windows-cli.exe windows-cli.exe
+        run: Copy-Item build/tasks/_windows-sailboat_linkMingwX64Release/windows-sailboat.exe windows-sailboat.exe
 
       - name: Upload Windows executable
         uses: actions/upload-artifact@v4
         with:
-          name: windows-cli.exe
-          path: windows-cli.exe
+          name: windows-sailboat.exe
+          path: windows-sailboat.exe
 
   release:
     name: Publish GitHub release
@@ -105,4 +105,4 @@ jobs:
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/linux-cli.kexe dist/windows-cli.exe dist/macos-cli.kexe --title "$GITHUB_REF_NAME" --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" dist/linux-sailboat.kexe dist/windows-sailboat.exe dist/macos-sailboat.kexe --title "$GITHUB_REF_NAME" --generate-notes

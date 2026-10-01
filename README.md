@@ -10,3 +10,4 @@
 - To run:
   - Go to the [Releases](https://github.com/OmyDaGreat/sailboat/releases) page and download the latest release for your OS.
   - Run the downloaded file.
+  - For Linux, you may need to run `chmod +x sailboat-linux` to make it executable.
