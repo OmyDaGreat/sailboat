@@ -23,10 +23,10 @@ jobs:
           java-version: "17"
 
       - name: Build MacOS release
-        run: ./kotlin build -m macos-cli -p macosX64 -v release
+        run: ./kotlin build -m macos-cli -p macosArm64 -v release
 
       - name: Prepare MacOS artifact
-        run: cp build/tasks/_macos-cli_linkMacosX64Release/macos-cli.kexe macos-cli.kexe
+        run: cp build/tasks/_macos-cli_linkMacosArm64Release/macos-cli.kexe macos-cli.kexe
 
       - name: Upload MacOS executable
         uses: actions/upload-artifact@v4
