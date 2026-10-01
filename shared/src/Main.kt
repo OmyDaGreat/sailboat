@@ -8,7 +8,6 @@ import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.foundation.text.underline
 import com.varabyte.kotter.runtime.render.RenderScope
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.curl.Curl
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
@@ -44,7 +43,7 @@ const val FEED_URL = "https://events.seas.harvard.edu/calendar.xml"
 
 fun fetchFeed(url: String = FEED_URL): String =
     runBlocking {
-        HttpClient(Curl).use { client ->
+        HttpClient().use { client ->
             client.get(url).bodyAsText().replace("\r\n", "\n")
         }
     }

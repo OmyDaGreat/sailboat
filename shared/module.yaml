@@ -11,4 +11,12 @@ dependencies:
   - io.github.pdvrieze.xmlutil:core:1.0.2
   - io.github.pdvrieze.xmlutil:serialization:1.0.2
   - io.ktor:ktor-client-core:3.6.0
+
+dependencies@macosArm64:
+  - io.ktor:ktor-client-darwin:3.6.0
+
+dependencies@linuxX64:
   - io.ktor:ktor-client-curl:3.6.0
+
+dependencies@mingwX64:
+  - io.ktor:ktor-client-winhttp:3.6.0
