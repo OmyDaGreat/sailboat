@@ -1,5 +1,4 @@
 modules:
-  - jvm-cli
   - linux-cli
   - macos-cli
   - shared

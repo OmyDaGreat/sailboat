@@ -1,0 +1,39 @@
+# Kotlin and Amper build output
+/build/
+/out/
+/.kotlin/
+/.gradle/
+
+# IntelliJ IDEA
+/.idea/
+*.iml
+*.ipr
+*.iws
+
+# Compiled and packaged artifacts
+*.class
+*.jar
+*.klib
+*.kexe
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Generated Kotlin/Native and compiler files
+/.konan/
+
+# Test and coverage output
+/test-results/
+/reports/
+/coverage/
+
+# Local environment and OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Local logs
+*.log
+*.jsonl
