@@ -10,7 +10,3 @@ dependencies:
   - com.varabyte.kotter:kotter:1.4.0
   - io.github.pdvrieze.xmlutil:core:1.0.2
   - io.github.pdvrieze.xmlutil:serialization:1.0.2
-
-test-dependencies:
-  - $kotlin.test
-  - com.varabyte.kotterx:kotter-test-support:1.4.0
