@@ -7,7 +7,21 @@
   - [xmlutil](https://github.com/pdvrieze/xmlutil) for XML/RSS parsing.
   - [Ktor](https://ktor.io/) for the HTTP client.
   - [Hack Club](https://hackclub.com/) for AI credits.
+  - [SendGrid](https://sendgrid.com/) for the email service.
 - To run:
   - Go to the [Releases](https://github.com/OmyDaGreat/sailboat/releases) page and download the latest release for your OS.
   - Run the downloaded file.
   - For Linux, you may need to run `chmod +x sailboat-linux` to make it executable.
+- How does it work?
+  - It fetches the RSS feed from "https://events.seas.harvard.edu/calendar.xml" and parses it as XML.
+  - The descriptions, titles, links, and locations are fed into an AI model along with the requested topic and time frame.
+  - The AI model gets the relevant events within the time frame, and they are emailed to the specified user.
+- Challenges:
+  - Emailing was a bit tricky, especially because I have a domain but no SMTP server. I ended up using SendGrid, which was pretty easy to set up but required another proxy.
+- Design Choices:
+  - The AI and the email service both request from my home server, which acts as a simple Docker-based Nginx proxy for the actual services referenced above. This is so that I can change the backend without updating the client, and also to avoid exposing my API keys in public code.
+  - I used a terminal for the client honestly just because I felt like it. It was the easiest to set up without doing actual UI work, and Kotter seemed like a really cool framework to use. It does also have the added benefit of being relatively lightweight and portable, as the whole program gets to about than 15 MB or even down to around 6 MB for macOS.
+- AI Usage:
+  - Primarily for small, tedious segments of the program like converting XML/Json to data classes. I also used it for the Docker/Nginx configuration on the backend.
+- How to Customize:
+  - Clone the repository and replace the RSS feed link as well as the AI/email proxy links.
