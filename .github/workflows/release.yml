@@ -1,0 +1,105 @@
+name: Build and publish release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build MacOS executable
+    runs-on: macos-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build MacOS release
+        run: ./kotlin build -m macos-cli -p macosX64 -v release
+
+      - name: Prepare MacOS artifact
+        run: cp build/tasks/_macos-cli_linkMacosX64Release/macos-cli.kexe macos-cli.kexe
+
+      - name: Upload MacOS executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-cli.kexe
+          path: macos-cli.kexe
+
+  build-linux:
+    name: Build Linux executable
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build Linux release
+        run: ./kotlin build -m linux-cli -p linuxX64 -v release
+
+      - name: Prepare Linux artifact
+        run: cp build/tasks/_linux-cli_linkLinuxX64Release/linux-cli.kexe linux-cli.kexe
+
+      - name: Upload Linux executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-cli.kexe
+          path: linux-cli.kexe
+
+  build-windows:
+    name: Build Windows executable
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build Windows release
+        run: .\kotlin.bat build -m windows-cli -p mingwX64 -v release
+
+      - name: Prepare Windows artifact
+        shell: pwsh
+        run: Copy-Item build/tasks/_windows-cli_linkMingwX64Release/windows-cli.exe windows-cli.exe
+
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-cli.exe
+          path: windows-cli.exe
+
+  release:
+    name: Publish GitHub release
+    needs:
+      - build-macos
+      - build-linux
+      - build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download executables
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/linux-cli.kexe dist/windows-cli.exe dist/macos-cli.kexe --title "$GITHUB_REF_NAME" --generate-notes
