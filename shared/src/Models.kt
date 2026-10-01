@@ -9,18 +9,6 @@ val http = HttpClient()
 val json = Json { ignoreUnknownKeys = true }
 
 @Serializable
-data class AIRequest(
-    val model: String,
-    val messages: List<PromptMessage>,
-)
-
-@Serializable
-data class PromptMessage(
-    val role: String,
-    val content: String,
-)
-
-@Serializable
 @XmlSerialName("rss")
 data class Rss(
     val channel: Channel,
@@ -54,6 +42,25 @@ data class Item(
     )
     @XmlElement(true)
     val longitude: Double? = null,
+)
+
+@Serializable
+data class MailRequest(
+    val to: String,
+    val subject: String,
+    val body: String,
+)
+
+@Serializable
+data class AIRequest(
+    val model: String,
+    val messages: List<PromptMessage>,
+)
+
+@Serializable
+data class PromptMessage(
+    val role: String,
+    val content: String,
 )
 
 @Serializable

@@ -3,8 +3,10 @@ import com.varabyte.kotter.foundation.input.onInputEntered
 import com.varabyte.kotter.foundation.input.runUntilInputEntered
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.text.green
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.foundation.text.yellow
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
@@ -83,11 +85,39 @@ fun main() {
             onInputEntered { timeFromNow = input.trim() }
         }
 
-        val raw = fetchFeed()
-        val rss = XML.v1 { policy { ignoreUnknownChildren() } }.decodeFromString<Rss>(escapeXml(declareNamespaces(raw)))
-
+        var rss by liveVarOf(null as Rss?)
         section {
-            textLine(getEventResults(topic, timeFromNow, rss.channel.items))
-        }.run()
+            rss?.let {
+                green {
+                    textLine("Fetched feed!")
+                }
+            } ?: run {
+                yellow {
+                    textLine("Fetching feed from Harvard SEAS...")
+                }
+            }
+        }.run {
+            rss = XML.v1 { policy { ignoreUnknownChildren() } }.decodeFromString<Rss>(escapeXml(declareNamespaces(fetchFeed())))
+        }
+
+        var responded by liveVarOf(false)
+        section {
+            if (responded) {
+                green {
+                    textLine("Email sent to $email with upcoming $topic events through $timeFromNow.")
+                }
+            } else {
+                yellow {
+                    textLine("Sending email to $email with upcoming $topic events through $timeFromNow...")
+                }
+            }
+        }.run {
+            send(
+                to = email,
+                subject = "sailboat-sourced harvard seas events for $topic through $timeFromNow",
+                body = getEventResults(topic, timeFromNow, rss!!.channel.items),
+            )
+            responded = true
+        }
     }
 }

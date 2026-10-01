@@ -12,17 +12,28 @@ fun getEventResults(
 ): String =
     fetchAIResponse(
         """
-        Create a concise list of all upcoming events that are happening from now to $timeFromNow and relate to $topic. Include the following information for each event:
-        The latitude and longitude identify the event location. Do not invent a street address from coordinates. Include the coordinates only when they help clarify the location. You can use "https://maps.google.com/?q=<lat>,<long>" as a link for the coordinates as well.
-        - Event title
-        - Date and time
-        - Location
-        - Hosting organization
-        - Link to the calendar listing
-
-        Here's the list of all the events:
-
-        ${
+        Create the body of an email listing all upcoming events from the first event in the feed through $timeFromNow that relate to $topic.
+        
+        Return only the email body. Do not include a subject line, greeting, sign-off, commentary, Markdown, tables, HTML, or code fences.
+        
+        Use this exact format:
+        
+        Upcoming $topic events
+        
+        EVENT
+        Title: <event title>
+        Date and time: <date and time>
+        Location: <location, or "Not specified">
+        Organization: <hosting organization, or "Not specified">
+        Calendar link: <full URL>
+        Coordinates: <latitude>, <longitude> (only if useful; otherwise omit this line)
+        
+        Put multiple events if necessary using the same format (without the upcoming line, that only goes at the top) and separate events with one blank line. Use plain text only. Preserve full URLs so they remain usable as clickable links in plain-text email. Do not invent or infer missing information. If there are no matching events, return exactly:
+        No upcoming $topic events were found.
+        
+        Here are the events:
+        ...
+        $${
             StringBuilder().apply {
                 items.forEach { item ->
                     val title = item.title.trim().substringAfter(':', item.title.trim())
