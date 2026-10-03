@@ -60,7 +60,7 @@ private fun fetchAIResponse(
 ) = runBlocking {
     val request =
         AIRequest(
-            model = "anthropic/claude-sonnet-5.5",
+            model = "openai/gpt-4o-mini",
             messages = listOf(PromptMessage(role = "user", content = prompt)),
         )
     val response =
