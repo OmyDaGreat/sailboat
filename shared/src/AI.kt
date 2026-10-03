@@ -1,3 +1,4 @@
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -6,11 +7,13 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 
 fun getEventResults(
+    token: String,
     topic: String,
     timeFromNow: String,
     items: List<Item>,
 ): String =
     fetchAIResponse(
+        token,
         """
         Create the body of an email listing all upcoming events from the first event in the feed through $timeFromNow that relate to $topic.
         
@@ -51,28 +54,31 @@ fun getEventResults(
         """.trimIndent(),
     )
 
-private fun fetchAIResponse(prompt: String) =
-    runBlocking {
-        val request =
-            AIRequest(
-                model = "anthropic/claude-sonnet-5.5",
-                messages = listOf(PromptMessage(role = "user", content = prompt)),
-            )
-        val response =
-            http.post("https://ai.malefic.xyz/chat") {
-                contentType(ContentType.Application.Json)
-                setBody(json.encodeToString<AIRequest>(request))
-            }
-
-        if (response.status.value !in 200..299) {
-            error("AI request failed with HTTP ${response.status.value}")
+private fun fetchAIResponse(
+    token: String,
+    prompt: String,
+) = runBlocking {
+    val request =
+        AIRequest(
+            model = "anthropic/claude-sonnet-5.5",
+            messages = listOf(PromptMessage(role = "user", content = prompt)),
+        )
+    val response =
+        http.post("https://ai.malefic.xyz/chat") {
+            header("X-Proxy-Token", token)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString<AIRequest>(request))
         }
 
-        json
-            .decodeFromString<AIResponse>(response.bodyAsText())
-            .choices
-            .firstOrNull()
-            ?.message
-            ?.content
-            ?: error("The AI response did not contain anything")
+    if (response.status.value !in 200..299) {
+        error("AI request failed with HTTP ${response.status.value}")
     }
+
+    json
+        .decodeFromString<AIResponse>(response.bodyAsText())
+        .choices
+        .firstOrNull()
+        ?.message
+        ?.content
+        ?: error("The AI response did not contain anything")
+}

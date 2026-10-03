@@ -4,9 +4,8 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 
-private const val MAIL_PROXY_TOKEN = "d881ea0aa2d2d879349b2249adc4d462119b75c2c0c587c47cadd351505226d6"
-
 suspend fun send(
+    token: String,
     to: String,
     subject: String = "your sailboat-sourced harvard seas events",
     body: String,
@@ -19,7 +18,7 @@ suspend fun send(
         )
     val response =
         http.post("https://mail.malefic.xyz/contact") {
-            header("X-Proxy-Token", MAIL_PROXY_TOKEN)
+            header("X-Proxy-Token", token)
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString<MailRequest>(request))
         }

@@ -22,6 +22,6 @@
   - The AI and the email service both request from my home server, which acts as a simple Docker-based Nginx proxy for the actual services referenced above. This is so that I can change the backend without updating the client, and also to avoid exposing my API keys in public code.
   - I used a terminal for the client honestly just because I felt like it. It was the easiest to set up without doing actual UI work, and Kotter seemed like a really cool framework to use. It does also have the added benefit of being relatively lightweight and portable, as the whole program gets to about than 15 MB or even down to around 6 MB for macOS.
 - AI Usage:
-  - Primarily for small, tedious segments of the program like converting XML/Json to data classes. I also used it for the Docker/Nginx configuration on the backend.
+  - Primarily for small, tedious segments of the program like converting XML/Json to data classes. Also used it for the Docker/Nginx configuration on the backend.
 - How to Customize:
-  - Clone the repository and replace the RSS feed link as well as the AI/email proxy links.
+  - Clone the repository and replace the RSS feed link as well as the AI/email proxy links, using API keys and servers associated with yourself and your own methods. Your design choices for that may look very different from mine!

@@ -56,9 +56,18 @@ fun declareNamespaces(xml: String): String =
 
 fun main() {
     session {
+        var token by liveVarOf("")
         var topic by liveVarOf("")
         var email by liveVarOf("")
         var timeFromNow by liveVarOf("")
+
+        section {
+            textLine("What is your API access token?")
+            text("> ")
+            input()
+        }.runUntilInputEntered {
+            onInputEntered { token = input.trim() }
+        }
 
         section {
             textLine("What topic would you like to search for?")
@@ -112,9 +121,10 @@ fun main() {
             }
         }.run {
             send(
+                token = token,
                 to = email,
                 subject = "sailboat-sourced harvard seas events for $topic through $timeFromNow",
-                body = getEventResults(topic, timeFromNow, rss!!.channel.items),
+                body = getEventResults(token, topic, timeFromNow, rss!!.channel.items),
             )
             responded = true
         }
