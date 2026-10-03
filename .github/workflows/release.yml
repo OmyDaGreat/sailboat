@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "27"
 
       - name: Build MacOS release
         run: ./kotlin build -m macos-cli -p macosArm64 -v release
@@ -45,7 +45,7 @@ jobs:
         uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "27"
 
       - name: Build Linux release
         run: ./kotlin build -m linux-cli -p linuxX64 -v release
@@ -70,7 +70,7 @@ jobs:
         uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "27"
 
       - name: Build Windows release
         run: .\kotlin.bat build -m windows-cli -p mingwX64 -v release
