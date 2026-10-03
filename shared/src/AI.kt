@@ -60,7 +60,7 @@ private fun fetchAIResponse(
 ) = runBlocking {
     val request =
         AIRequest(
-            model = "openai/gpt-5.4-mini",
+            model = "~deepseek/deepseek-pro-latest",
             messages = listOf(PromptMessage(role = "user", content = prompt)),
         )
     val response =
